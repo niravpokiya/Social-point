@@ -12,8 +12,8 @@ export default function SideNavigationPanel() {
             <button
                 className="text-left text-red-400 hover:text-red-600 mt-6"
                 onClick={() => {
-                localStorage.removeItem('token');
-                window.location.href = "/login";
+                    localStorage.removeItem('token');
+                    window.location.href = "/login";
                 }}
             >
                 🚪 Logout
@@ -21,4 +21,4 @@ export default function SideNavigationPanel() {
             </nav>
       </aside>
     );
-}
+} 
