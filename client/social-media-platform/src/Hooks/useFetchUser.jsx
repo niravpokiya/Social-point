@@ -1,38 +1,32 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 
-export default function useFetchUser() {
+export default function useFetchUser(username) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // optional
-  const [error, setError] = useState(null);     // optional
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No token found");
-      setLoading(false);
-      return;
-    }
-
-    fetch("http://localhost:5000/api/user/me", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
+    const fetchUser = async () => {
+      try {
+        const url = username
+        ? `/api/user/${username}` // ✅ fixed this
+        : `/api/user/me`;
+        console.log(username)
+        const res = await axios.get(url, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        setUser(res.data);
+        console.log(res.data)
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch user");
+      } finally {
+        setLoading(false);
       }
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Unauthorized");
-        return res.json();
-      })
-      .then(data => {
-        setUser(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, []);
+    };
 
+    fetchUser();
+  }, [username]);
+  // here user comes null
   return { user, loading, error };
 }

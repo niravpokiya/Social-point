@@ -39,7 +39,13 @@ router.post('/register', async (req, res) => {
       username,
       email: isEmail ? emailOrPhone : undefined,
       PhoneNumber: isPhone ? emailOrPhone : undefined,
-      password: hashedPassword
+      password: hashedPassword,
+      
+      // 🆕 Default fields
+      followers: [],
+      following: [],
+      profileImage: '/default-avatar.png',
+      bio: ''
     });
 
     await newUser.save();
@@ -61,7 +67,6 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // Login (by email or phone)
 router.post('/login', async (req, res) => {
@@ -86,8 +91,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: '7d'
     });
-
-    // Respond with token and user info
+ 
     res.json({
       token,
       user: {
@@ -104,5 +108,8 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+ 
 
 module.exports = router;
+
+

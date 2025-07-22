@@ -5,8 +5,13 @@ const Register = () => {
     name: '',
     username: '',
     emailOrPhone: '',
-    password: ''
+    password: '',
+    followers: [],
+    following: [],
+    profileImage: '/default-avatar.png',
+    bio: ''
   });
+
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value });

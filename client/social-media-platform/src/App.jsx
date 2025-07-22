@@ -3,6 +3,7 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Test from './components/Test';
 import Layout from './Layout/Layout';
+import Profile from './components/Profile';
 
 function App() {
   return (
@@ -10,11 +11,11 @@ function App() {
       <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route element={<Layout />}>
+        <Route path="/" element={<Layout />}>
            {/* <Route path="/dashboard" element={<Dashboard />} />
-           <Route path="/inbox" element={<Inbox />}/>
-           <Route path="/profile" element={<Profile />} />
-           <Route path="/about" element={<About /> } />
+           <Route path="/inbox" element={<Inbox />}/> */}
+            <Route path="/profile/:username?" element={<Profile />} />
+           {/* <Route path="/about" element={<About /> } />
            <Route path="/settings" element={<Settings />} /> */}
         </Route>
         <Route path="/test" element={<Test />} />
