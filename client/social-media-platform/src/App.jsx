@@ -4,6 +4,7 @@ import Register from './components/Register';
 import Test from './components/Test';
 import Layout from './Layout/Layout';
 import Profile from './components/Profile';
+import EditProfile from './components/edit-profile';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
            {/* <Route path="/dashboard" element={<Dashboard />} />
            <Route path="/inbox" element={<Inbox />}/> */}
             <Route path="/profile/:username?" element={<Profile />} />
+            <Route path="/edit-profile" element={<EditProfile />} />
            {/* <Route path="/about" element={<About /> } />
            <Route path="/settings" element={<Settings />} /> */}
         </Route>

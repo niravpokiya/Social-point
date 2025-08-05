@@ -19,6 +19,7 @@ export default function useFetchUser(username) {
         setUser(res.data);
         console.log(res.data)
       } catch (err) {
+        location.href="/login"
         setError(err.response?.data?.message || "Failed to fetch user");
       } finally {
         setLoading(false);
