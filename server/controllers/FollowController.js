@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const NotificationService = require('../services/NotificationService');
+
 exports.followUser = async (req, res) => {
   const currentUserId = req.user.id;
   const targetUserId = req.params.id;
@@ -23,6 +25,9 @@ exports.followUser = async (req, res) => {
       // Follow
       currentUser.following.push(targetUserId);
       targetUser.followers.push(currentUserId);
+      
+      // Create follow notification
+      await NotificationService.createFollowNotification(targetUserId, currentUserId);
     }
 
     await currentUser.save();

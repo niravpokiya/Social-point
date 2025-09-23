@@ -1,18 +1,31 @@
 import { Outlet } from 'react-router-dom';
+import AuthGuard from "../components/AuthGuard";
 import SideNavigationPanel from "../components/Sidebar";
+import { useTheme } from '../context/ThemeContext';
 
 export default function Layout() {
-  return (
-    <div className="flex h-screen bg-gray-900 text-white">
-      {/* Sidebar - Fixed width, full height */}
-      <div className="w-64 bg-gray-800 flex-shrink-0">
-        <SideNavigationPanel />
-      </div>
+  const { currentTheme } = useTheme();
 
-      {/* Main content - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-6 bg-gray-950">
-        <Outlet />
+  return (
+    <AuthGuard>
+      <div 
+        className="flex h-screen overflow-hidden transition-colors duration-300"
+        style={{ 
+          backgroundColor: currentTheme.colors.background,
+          color: currentTheme.colors.text
+        }}
+      >
+        {/* Sidebar - Fixed width, full height */}
+        <SideNavigationPanel />
+
+        {/* Main content - Scrollable */}
+        <div 
+          className="flex-1 overflow-y-auto overflow-x-hidden"
+          style={{ backgroundColor: currentTheme.colors.background }}
+        >
+          <Outlet />
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }

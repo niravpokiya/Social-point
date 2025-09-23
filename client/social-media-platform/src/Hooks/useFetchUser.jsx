@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
+import { useEffect, useState } from "react";
 
 export default function useFetchUser(username) {
   const [user, setUser] = useState(null);
@@ -11,13 +11,11 @@ export default function useFetchUser(username) {
       try {
         const url = username
         ? `/api/user/${username}` // ✅ fixed this
-        : `/api/user/me`;
-        console.log(username)
+        : `/api/user/me`; 
         const res = await axios.get(url, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
-        setUser(res.data);
-        console.log(res.data)
+        setUser(res.data); 
       } catch (err) {
         location.href="/login"
         setError(err.response?.data?.message || "Failed to fetch user");
