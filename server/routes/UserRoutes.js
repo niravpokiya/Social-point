@@ -37,25 +37,66 @@ router.post('/upload-avatar', authMiddleware, upload.single('avatar'), (req, res
 // ✅ Follow/Unfollow user
 router.put("/:id/follow", authMiddleware, followUser);
 
-// ✅ Get user's following list
-router.get("/:id/following", async (req, res) => {
+// ✅ Get user's following list (with privacy check)
+router.get("/:id/following", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
+    const profileUserId = req.params.id;
+    const requestingUserId = req.user.id;
+    
+    // Find the profile user
+    const profileUser = await User.findById(profileUserId)
       .populate('following', 'name username avatar isVerified');
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    res.status(200).json(user.following || []);
+    
+    if (!profileUser) return res.status(404).json({ message: 'User not found' });
+    
+    // If requesting user is viewing their own profile, allow access
+    if (profileUserId === requestingUserId) {
+      return res.status(200).json(profileUser.following || []);
+    }
+    
+    // Check if the profile user is following the requesting user
+    const isFollowingRequester = profileUser.following.some(
+      followedUser => followedUser._id.toString() === requestingUserId
+    );
+    
+    if (isFollowingRequester) {
+      res.status(200).json(profileUser.following || []);
+    } else {
+      res.status(403).json({ message: 'You can only view following list of users who follow you back' });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// ✅ Get user's followers list
-router.get("/:id/followers", async (req, res) => {
+// ✅ Get user's followers list (with privacy check)
+router.get("/:id/followers", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
-      .populate('followers', 'name username avatar isVerified');
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    res.status(200).json(user.followers || []);
+    const profileUserId = req.params.id;
+    const requestingUserId = req.user.id;
+    
+    // Find the profile user
+    const profileUser = await User.findById(profileUserId)
+      .populate('followers', 'name username avatar isVerified')
+      .populate('following', '_id'); // Need to check if profile user follows requester
+    
+    if (!profileUser) return res.status(404).json({ message: 'User not found' });
+    
+    // If requesting user is viewing their own profile, allow access
+    if (profileUserId === requestingUserId) {
+      return res.status(200).json(profileUser.followers || []);
+    }
+    
+    // Check if the profile user is following the requesting user
+    const isFollowingRequester = profileUser.following.some(
+      followedUser => followedUser._id.toString() === requestingUserId
+    );
+    
+    if (isFollowingRequester) {
+      res.status(200).json(profileUser.followers || []);
+    } else {
+      res.status(403).json({ message: 'You can only view followers list of users who follow you back' });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

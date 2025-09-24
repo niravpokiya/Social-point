@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import api from "../utils/axiosInstance";
 import { getUserAvatarUrl } from "../utils/avatarUtils";
-import UserDiscovery from "./UserDiscovery";
+import api from "../utils/axiosInstance";
+import CommentModal from "./CommentModal";
 
 export default function Explore() {
     const { currentTheme } = useTheme();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('posts');
+    const [showCommentModal, setShowCommentModal] = useState({ postId: null, isOpen: false });
 
     // Fetch all posts for explore (everyone's recent posts by date)
     useEffect(() => {
@@ -48,11 +48,33 @@ export default function Explore() {
         fetchExplorePosts();
     }, []);
 
+    const handleLike = async (postId) => {
+        try {
+            const response = await api.post(`/api/posts/${postId}/like`);
+            
+            // Update the post in the local state
+            setPosts(posts.map(post => {
+                if (post.id === postId) {
+                    return {
+                        ...post,
+                        liked: !post.liked,
+                        likes: post.liked ? post.likes - 1 : post.likes + 1
+                    };
+                }
+                return post;
+            }));
+        } catch (error) {
+            console.error('Error liking post:', error);
+        }
+    };
+
+    const handleComment = (postId) => {
+        setShowCommentModal({ postId, isOpen: true });
+    };
+
     const PostCard = ({ post }) => (
-        <div 
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6"
-            style={{ backgroundColor: currentTheme.colors.surface }}
-        >
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+            {/* User Info */}
             <div className="flex items-center space-x-3 mb-4">
                 <img 
                     src={post.user.avatar} 
@@ -62,20 +84,22 @@ export default function Explore() {
                 <div className="flex-1">
                     <Link 
                         to={`/profile/${post.user.username.replace('@', '')}`}
-                        className="text-sm font-semibold hover:underline"
+                        className="text-sm font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                         style={{ color: currentTheme.colors.text }}
                     >
                         {post.user.name}
                     </Link>
-                    <p className="text-xs text-gray-500">{post.user.username}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{post.user.username}</p>
                 </div>
-                <span className="text-xs text-gray-500">{post.timestamp}</span>
+                <span className="text-xs text-gray-400">{post.timestamp}</span>
             </div>
             
-            <p className="mb-4" style={{ color: currentTheme.colors.text }}>
+            {/* Post Content */}
+            <p className="mb-4 text-gray-800 dark:text-gray-200" style={{ color: currentTheme.colors.text }}>
                 {post.content}
             </p>
             
+            {/* Post Image */}
             {post.image && (
                 <img 
                     src={post.image} 
@@ -84,18 +108,21 @@ export default function Explore() {
                 />
             )}
             
+            {/* Engagement Stats */}
             <div className="flex items-center space-x-6 text-sm text-gray-500">
-                <button className="flex items-center space-x-1 hover:text-red-500 transition-colors">
-                    <span>❤️</span>
+                <button 
+                    onClick={() => handleLike(post.id)}
+                    className={`flex items-center space-x-1 transition-colors ${post.liked ? 'text-red-500' : 'hover:text-red-500'}`}
+                >
+                    <span>{post.liked ? '❤️' : '🤍'}</span>
                     <span>{post.likes}</span>
                 </button>
-                <button className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
-                    <span>💬</span>
+                <button 
+                    onClick={() => handleComment(post.id)}
+                    className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
+                >
+                    <span>�</span>
                     <span>{post.comments}</span>
-                </button>
-                <button className="flex items-center space-x-1 hover:text-green-500 transition-colors">
-                    <span>🔄</span>
-                    <span>{post.shares}</span>
                 </button>
             </div>
         </div>
@@ -103,72 +130,54 @@ export default function Explore() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: currentTheme.colors.background }}>
+            <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderColor: currentTheme.colors.primary }}></div>
-                    <p style={{ color: currentTheme.colors.text }}>Loading explore posts...</p>
+                    <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading posts...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen" style={{ backgroundColor: currentTheme.colors.background }}>
-            <div className="max-w-4xl mx-auto p-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <div className="max-w-4xl mx-auto px-6 py-8">
+                {/* Simple Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold mb-2" style={{ color: currentTheme.colors.text }}>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
                         🔍 Explore
                     </h1>
-                    <p className="text-gray-500">Discover posts and people on the platform</p>
+                    <p className="text-gray-600 dark:text-gray-400">Discover posts from the community</p>
                 </div>
 
-                {/* Tab Navigation */}
-                <div className="flex space-x-1 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                    <button
-                        onClick={() => setActiveTab('posts')}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                            activeTab === 'posts'
-                                ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                        }`}
-                        style={{ 
-                            color: activeTab === 'posts' ? currentTheme.colors.primary : currentTheme.colors.textSecondary 
-                        }}
-                    >
-                        📝 Posts
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('people')}
-                        className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                            activeTab === 'people'
-                                ? 'bg-white dark:bg-gray-700 text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                        }`}
-                        style={{ 
-                            color: activeTab === 'people' ? currentTheme.colors.primary : currentTheme.colors.textSecondary 
-                        }}
-                    >
-                        👥 People
-                    </button>
-                </div>
-
-                {/* Tab Content */}
-                {activeTab === 'posts' ? (
-                    posts.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500 text-lg">No posts to explore yet.</p>
-                        </div>
-                    ) : (
-                        <div>
-                            {posts.map(post => (
-                                <PostCard key={post.id} post={post} />
-                            ))}
-                        </div>
-                    )
+                {/* Posts Content */}
+                {posts.length === 0 ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                        <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">No posts to explore yet</p>
+                        <Link 
+                            to="/home" 
+                            className="inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                            Go to Home
+                        </Link>
+                    </div>
                 ) : (
-                    <UserDiscovery />
+                    <div className="space-y-6">
+                        {posts.map(post => (
+                            <PostCard key={post.id} post={post} />
+                        ))}
+                    </div>
                 )}
             </div>
+            
+            {/* Comment Modal */}
+            {showCommentModal.isOpen && (
+                <CommentModal 
+                    isOpen={showCommentModal.isOpen}
+                    onClose={() => setShowCommentModal({ postId: null, isOpen: false })}
+                    postId={showCommentModal.postId}
+                />
+            )}
         </div>
     );
 }

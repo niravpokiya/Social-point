@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useTheme } from '../context/ThemeContext';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 import api from '../utils/axiosInstance';
 
 export default function Settings() {

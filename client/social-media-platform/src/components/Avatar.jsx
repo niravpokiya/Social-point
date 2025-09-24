@@ -1,4 +1,3 @@
-import React from 'react';
 import defaultAvatar from '../assets/default-avatar.png';
 
 const Avatar = ({ 
@@ -9,22 +8,18 @@ const Avatar = ({
   ...props 
 }) => {
   const getAvatarSrc = () => {
-    // Handle various edge cases
     if (!user) return defaultAvatar;
     
     const { avatar } = user;
     
-    // Handle null, undefined, empty string, or 'undefined' string
     if (!avatar || avatar === 'undefined' || avatar === 'null' || avatar === '') {
       return defaultAvatar;
     }
     
-    // If it's already a complete URL, return as is
     if (typeof avatar === 'string' && avatar.startsWith('http')) {
       return avatar;
     }
     
-    // Otherwise, prepend the server URL
     return `http://localhost:5000${avatar}`;
   };
 

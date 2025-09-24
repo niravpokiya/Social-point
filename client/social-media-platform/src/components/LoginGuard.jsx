@@ -16,8 +16,7 @@ export default function LoginGuard({ children }) {
         return;
       }
 
-      try {
-        // Verify token with server
+      try { 
         const response = await api.get('/api/user/me');
         if (response.data) {
           setIsAuthenticated(true);

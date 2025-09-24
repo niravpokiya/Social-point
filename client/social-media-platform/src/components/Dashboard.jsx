@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import useFetchUser from "../Hooks/useFetchUser";
-import api from "../utils/axiosInstance";
 import { getUserAvatarUrl } from "../utils/avatarUtils";
+import api from "../utils/axiosInstance";
+import Avatar from "./Avatar";
 import CommentModal from "./CommentModal";
 import PostModal from "./PostModal";
 
@@ -14,14 +15,30 @@ export default function Dashboard() {
     const [showPostModal, setShowPostModal] = useState(false);
     const [newPost, setNewPost] = useState('');
     const [showCommentModal, setShowCommentModal] = useState({ postId: null, isOpen: false });
+    const [suggestedFriends, setSuggestedFriends] = useState([]);
 
-    // Fetch real feed
+    // Fetch real feed - only from users being followed
     useEffect(() => {
         const fetchFeed = async () => {
+            if (!user?.following) return; // Wait for user data to load
+            
             try {
                 const res = await api.get('/api/posts');
                 const data = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
-                const normalized = data.map(p => ({
+                
+                // Filter posts to only show from followed users + own posts
+                const filteredData = data.filter(p => {
+                    const authorId = p.author?._id || p.author;
+                    const isOwnPost = authorId === user._id;
+                    const isFromFollowedUser = user.following.some(followedId => {
+                        // Handle both string IDs and object IDs
+                        const followedUserId = typeof followedId === 'object' ? followedId._id : followedId;
+                        return followedUserId === authorId;
+                    });
+                    return isOwnPost || isFromFollowedUser;
+                });
+                
+                const normalized = filteredData.map(p => ({
                     id: p._id,
                     user: {
                         name: p.author?.name || 'User',
@@ -36,6 +53,10 @@ export default function Dashboard() {
                     shares: Array.isArray(p.shares) ? p.shares.length : 0,
                     liked: false
                 }));
+                
+                // Sort by creation date (most recent first)
+                normalized.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
                 setPosts(normalized);
             } catch (e) {
                 console.error('Error fetching feed', e);
@@ -43,7 +64,89 @@ export default function Dashboard() {
             }
         };
         fetchFeed();
-    }, []);
+    }, [user]); // Re-run when user data changes
+
+    // Fetch suggested friends
+    useEffect(() => {
+        const fetchSuggestedFriends = async () => {
+            if (!user?._id) return;
+            
+            try {
+                let suggestions = [];
+                
+                // First, try to get followers of people the user follows
+                if (user.following && user.following.length > 0) {
+                    // Get followers of the first few people the user follows
+                    for (let i = 0; i < Math.min(3, user.following.length); i++) {
+                        try {
+                            const followedUserId = user.following[i];
+                            const response = await api.get(`/api/user/${followedUserId}/followers`);
+                            const followers = response.data || [];
+                            
+                            // Filter out the current user and people they already follow
+                            const filtered = followers.filter(person => 
+                                person._id !== user._id && 
+                                !user.following.includes(person._id)
+                            );
+                            
+                            suggestions = [...suggestions, ...filtered];
+                        } catch (err) {
+                            // Skip if can't access this user's followers (privacy)
+                            continue;
+                        }
+                    }
+                }
+                
+                // If we don't have enough suggestions, get random users
+                if (suggestions.length < 3) {
+                    try {
+                        const response = await api.get('/api/user/discover');
+                        const randomUsers = response.data || [];
+                        
+                        // Filter out current user and people they already follow
+                        const filtered = randomUsers.filter(person => 
+                            person._id !== user._id && 
+                            !user.following?.includes(person._id) &&
+                            !suggestions.some(s => s._id === person._id) // Avoid duplicates
+                        );
+                        
+                        suggestions = [...suggestions, ...filtered];
+                    } catch (err) {
+                        console.error('Error fetching random users:', err);
+                    }
+                }
+                
+                // Limit to 4 suggestions and add mutual friends count
+                const finalSuggestions = suggestions.slice(0, 4).map(person => ({
+                    ...person,
+                    mutualFriends: calculateMutualFriends(person, user)
+                }));
+                
+                setSuggestedFriends(finalSuggestions);
+            } catch (error) {
+                console.error('Error fetching suggested friends:', error);
+                setSuggestedFriends([]);
+            }
+        };
+
+        fetchSuggestedFriends();
+    }, [user]);
+
+    // Calculate mutual friends count
+    const calculateMutualFriends = (person, currentUser) => {
+        if (!person.followers || !currentUser.following) return 0;
+        
+        const personFollowers = new Set(person.followers.map(f => f._id || f));
+        const userFollowing = new Set(currentUser.following.map(f => f._id || f));
+        
+        let mutualCount = 0;
+        for (let follower of personFollowers) {
+            if (userFollowing.has(follower)) {
+                mutualCount++;
+            }
+        }
+        return mutualCount;
+    };
 
     const handleLike = async (postId) => {
         try {
@@ -87,6 +190,20 @@ export default function Dashboard() {
         } catch (error) {
             console.error('Error deleting post:', error);
             alert('Failed to delete post. Please try again.');
+        }
+    };
+
+    const handleFollowSuggestion = async (userId) => {
+        try {
+            await api.put(`/api/user/${userId}/follow`);
+            
+            // Remove the followed user from suggestions
+            setSuggestedFriends(suggestedFriends.filter(friend => friend._id !== userId));
+            
+            // You might want to update the user's following list here
+            // and trigger a re-fetch of suggestions
+        } catch (error) {
+            console.error('Error following user:', error);
         }
     };
 
@@ -173,7 +290,7 @@ export default function Dashboard() {
         >
             <div className="flex items-start space-x-4">
                 <img 
-                    src={user?.avatar || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face"} 
+                    src={getUserAvatarUrl(user)} 
                     alt="Your avatar"
                     className="w-12 h-12 rounded-full object-cover ring-2 ring-blue-500"
                 />
@@ -254,30 +371,46 @@ export default function Dashboard() {
                 👥 Suggested Friends
             </h3>
             <div className="space-y-4">
-                {[
-                    { name: "Emma Wilson", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face", mutual: 12 },
-                    { name: "David Kim", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face", mutual: 8 },
-                    { name: "Lisa Park", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face", mutual: 15 }
-                ].map((friend, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                        <img 
-                            src={friend.avatar} 
-                            alt={friend.name}
-                            className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div className="flex-1">
-                            <p className="text-sm font-medium" style={{ color: currentTheme.colors.text }}>
-                                {friend.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                                {friend.mutual} mutual friends
-                            </p>
-                        </div>
-                        <button className="px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors">
-                            Add
-                        </button>
+                {suggestedFriends.length === 0 ? (
+                    <div className="text-center py-4">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            No suggestions available
+                        </p>
                     </div>
-                ))}
+                ) : (
+                    suggestedFriends.map((friend, index) => (
+                        <div key={friend._id || index} className="flex items-center space-x-3">
+                            <Link to={`/profile/${friend.username}`} className="flex-shrink-0">
+                                <Avatar 
+                                    user={friend} 
+                                    size="w-10 h-10"
+                                    className="rounded-full hover:ring-2 hover:ring-blue-500 transition-all cursor-pointer"
+                                />
+                            </Link>
+                            <div className="flex-1">
+                                <Link 
+                                    to={`/profile/${friend.username}`}
+                                    className="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer" 
+                                    style={{ color: currentTheme.colors.text }}
+                                >
+                                    {friend.name}
+                                </Link>
+                                <p className="text-xs text-gray-500">
+                                    {friend.mutualFriends > 0 
+                                        ? `${friend.mutualFriends} mutual friends`
+                                        : `@${friend.username}`
+                                    }
+                                </p>
+                            </div>
+                            <button 
+                                onClick={() => handleFollowSuggestion(friend._id)}
+                                className="px-3 py-1 bg-blue-500 text-white text-xs rounded-full hover:bg-blue-600 transition-colors"
+                            >
+                                Follow
+                            </button>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );

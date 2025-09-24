@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../Hooks/useNotifications';
 import { getUserAvatarUrl } from '../utils/avatarUtils';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../utils/axiosInstance";
 import Avatar from "./Avatar";
 
@@ -31,7 +31,13 @@ export default function UserListPage() {
       } catch (err) {
         console.error("Error fetching data:", err);
         console.error("Error response:", err.response?.data);
-        setUsers([]);
+        
+        // Handle privacy restriction (403 error)
+        if (err.response?.status === 403) {
+          setUsers('restricted');
+        } else {
+          setUsers([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -86,7 +92,24 @@ export default function UserListPage() {
         </div>
 
         {/* Users List */}
-        {users.length === 0 ? (
+        {users === 'restricted' ? (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+            <div className="w-20 h-20 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
+              Private {type}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">
+              You can only view {type} of users who follow you back.
+            </p>
+            <p className="text-sm text-gray-400 dark:text-gray-500">
+              Follow each other to see {type} lists!
+            </p>
+          </div>
+        ) : users.length === 0 ? (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
             <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,11 +153,6 @@ export default function UserListPage() {
                           <h3 className="font-semibold text-gray-800 dark:text-white text-lg">
                             {person.name}
                           </h3>
-                          {index < 3 && (
-                            <span className="px-2 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs rounded-full font-medium">
-                              Top {index + 1}
-                            </span>
-                          )}
                         </div>
                         <p className="text-gray-500 dark:text-gray-400 mb-1">@{person.username}</p>
                         {person.bio && (
@@ -152,21 +170,6 @@ export default function UserListPage() {
                       >
                         View Profile
                       </Link>
-                      
-                      <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center space-x-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                          <span>{person.followers?.length || 0} followers</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span>{person.following?.length || 0} following</span>
-                        </span>
-                      </div>
                     </div>
                   </div>
                 </div>

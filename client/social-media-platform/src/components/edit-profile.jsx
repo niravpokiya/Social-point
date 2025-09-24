@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from '../utils/axiosInstance';
 import { getUserAvatarUrl } from '../utils/avatarUtils';
+import axios from '../utils/axiosInstance';
 
 const EditProfile = () => {
   const [formData, setFormData] = useState({ name: '', username: '', bio: '', avatar: '' });

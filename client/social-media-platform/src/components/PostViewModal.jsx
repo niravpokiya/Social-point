@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 import useFetchUser from "../Hooks/useFetchUser";
 import api from "../utils/axiosInstance";
-import CommentModal from "./CommentModal";
 import Avatar from "./Avatar";
+import CommentModal from "./CommentModal";
 
 export default function PostViewModal({ post, onClose, onPostDeleted }) {
   // Early return before any hooks are called

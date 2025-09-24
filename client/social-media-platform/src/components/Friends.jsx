@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import api from "../utils/axiosInstance";
@@ -19,14 +19,40 @@ export default function Friends() {
                 
                 // Get current user first
                 const userRes = await api.get('/api/user/me');
-                setCurrentUser(userRes.data);
+                const userData = userRes.data;
+                setCurrentUser(userData);
                 
-                // Get user's following list (friends)
-                const friendsRes = await api.get(`/api/user/${userRes.data._id}/following`);
-                setFriends(Array.isArray(friendsRes.data) ? friendsRes.data : []);
+                // Get user's following and followers lists
+                const [followingRes, followersRes] = await Promise.all([
+                    api.get(`/api/user/${userData._id}/following`),
+                    api.get(`/api/user/${userData._id}/followers`)
+                ]);
+                
+                const following = Array.isArray(followingRes.data) ? followingRes.data : [];
+                const followers = Array.isArray(followersRes.data) ? followersRes.data : [];
+                
+                // Find mutual friends (people who follow you AND you follow them)
+                const mutualFriends = following.filter(followedUser => {
+                    return followers.some(follower => {
+                        const followerId = follower._id || follower;
+                        const followedId = followedUser._id || followedUser;
+                        return followerId === followedId;
+                    });
+                });
+                
+                setFriends(mutualFriends);
             } catch (e) {
                 console.error('Error fetching friends', e);
-                setFriends([]);
+                // If there's an error (like privacy restrictions), show following list as fallback
+                try {
+                    const userRes = await api.get('/api/user/me');
+                    setCurrentUser(userRes.data);
+                    const followingRes = await api.get(`/api/user/${userRes.data._id}/following`);
+                    setFriends(Array.isArray(followingRes.data) ? followingRes.data : []);
+                } catch (fallbackError) {
+                    console.error('Fallback error:', fallbackError);
+                    setFriends([]);
+                }
             } finally {
                 setLoading(false);
             }
@@ -98,22 +124,6 @@ export default function Friends() {
                                         {friend.bio}
                                     </p>
                                 )}
-                                
-                                {/* Friend Stats */}
-                                <div className="flex space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                    <span className="flex items-center space-x-1">
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        </svg>
-                                        <span>{friend.followers?.length || 0} followers</span>
-                                    </span>
-                                    <span className="flex items-center space-x-1">
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <span>{friend.posts?.length || 0} posts</span>
-                                    </span>
-                                </div>
                             </div>
                         </div>
                         
@@ -160,7 +170,7 @@ export default function Friends() {
                                 👥 Friends
                             </h1>
                             <p className="text-gray-600 dark:text-gray-400">
-                                {friends.length} {friends.length === 1 ? 'friend' : 'friends'} you're following
+                                {friends.length} mutual {friends.length === 1 ? 'friend' : 'friends'} (follow each other)
                             </p>
                         </div>
                         
@@ -196,7 +206,7 @@ export default function Friends() {
                         <p className="text-gray-600 dark:text-gray-400 mb-8 text-lg">
                             {searchTerm 
                                 ? `No friends match "${searchTerm}". Try a different search term.`
-                                : "Start following people to see them here!"
+                                : "No mutual friends yet. Friends are people who follow you back!"
                             }
                         </p>
                         {!searchTerm && (

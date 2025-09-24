@@ -52,6 +52,9 @@ export default function Profile() {
   }, []);
 
   const isOwnProfile = loggedInUserId === user?._id;
+  
+  // Check if the profile user is following the logged-in user
+  const isFollowingMe = user?.following?.includes(loggedInUserId) || false;
 
   // Derived mutual friends list
   const getMutuals = () => {
@@ -273,14 +276,28 @@ export default function Profile() {
                       <div className="text-lg font-bold text-gray-800 dark:text-white mb-1">{posts.length}</div>
                       <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Posts</div>
                     </div>
-                    <Link to={`/profile/${user._id}/followers`} className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 block">
-                      <div className="text-lg font-bold text-gray-800 dark:text-white mb-1">{user.followers.length}</div>
-                      <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Followers</div>
-                    </Link>
-                    <Link to={`/profile/${user._id}/following`} className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 block">
-                      <div className="text-lg font-bold text-gray-800 dark:text-white mb-1">{user.following.length}</div>
-                      <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Following</div>
-                    </Link>
+                    {(isOwnProfile || isFollowingMe) ? (
+                      <Link to={`/profile/${user._id}/followers`} className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 block">
+                        <div className="text-lg font-bold text-gray-800 dark:text-white mb-1">{user.followers.length}</div>
+                        <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Followers</div>
+                      </Link>
+                    ) : (
+                      <div className="bg-gray-100 dark:bg-gray-600 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 cursor-not-allowed opacity-50">
+                        <div className="text-lg font-bold text-gray-500 dark:text-gray-400 mb-1">🔒</div>
+                        <div className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wide">Followers</div>
+                      </div>
+                    )}
+                    {(isOwnProfile || isFollowingMe) ? (
+                      <Link to={`/profile/${user._id}/following`} className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200 block">
+                        <div className="text-lg font-bold text-gray-800 dark:text-white mb-1">{user.following.length}</div>
+                        <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Following</div>
+                      </Link>
+                    ) : (
+                      <div className="bg-gray-100 dark:bg-gray-600 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 cursor-not-allowed opacity-50">
+                        <div className="text-lg font-bold text-gray-500 dark:text-gray-400 mb-1">🔒</div>
+                        <div className="text-gray-400 dark:text-gray-500 text-xs uppercase tracking-wide">Following</div>
+                      </div>
+                    )}
                     <div className="bg-white dark:bg-gray-700 rounded-lg p-3 text-center border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-300 dark:hover:border-gray-500 transition-all duration-200">
                       <div className="text-lg font-bold text-gray-800 dark:text-white mb-1">{getMutuals()}</div>
                       <div className="text-gray-500 dark:text-gray-400 text-xs uppercase tracking-wide">Friends</div>
