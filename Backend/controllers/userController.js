@@ -1,4 +1,4 @@
-const User = require('../models/User'); // ✅ ADD THIS LINE
+const User = require('../models/User');
 
 exports.updateProfile = async (req, res) => {
   try {

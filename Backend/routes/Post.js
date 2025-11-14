@@ -127,8 +127,7 @@ router.put("/:id/like", authMiddleware, async (req, res) => {
 
     const isLiked = post.toggleLike(req.user.id);
     await post.save();
-
-    // Create like notification (only when liking, not unliking)
+ 
     if (isLiked) {
       const NotificationService = require('../services/NotificationService');
       await NotificationService.createLikeNotification(post.author.toString(), req.user.id, req.params.id);
