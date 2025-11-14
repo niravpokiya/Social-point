@@ -38,13 +38,13 @@ A modern, mesmerizing social media platform built with React, Node.js, and Mongo
 
 2. **Install server dependencies**
    ```bash
-   cd server
+   cd backend
    npm install
    ```
 
 3. **Install client dependencies**
    ```bash
-   cd ../client/social-media-platform
+   cd ../frontend
    npm install
    ```
 
@@ -63,13 +63,13 @@ A modern, mesmerizing social media platform built with React, Node.js, and Mongo
 
    **Backend (Terminal 1):**
    ```bash
-   cd server
+   cd backend
    npm run dev
    ```
 
    **Frontend (Terminal 2):**
    ```bash
-   cd client/social-media-platform
+   cd frontend
    npm run dev
    ```
 
