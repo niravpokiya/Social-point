@@ -4,12 +4,15 @@ import { useTheme } from "../context/ThemeContext";
 import { getUserAvatarUrl } from "../utils/avatarUtils";
 import api from "../utils/axiosInstance";
 import CommentModal from "./CommentModal";
+import PostViewModal from "./PostViewModal";
 
 export default function Explore() {
     const { currentTheme } = useTheme();
     const [posts, setPosts] = useState([]);
+    const [originalPosts, setOriginalPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCommentModal, setShowCommentModal] = useState({ postId: null, isOpen: false });
+    const [showPostModal, setShowPostModal] = useState({ post: null, isOpen: false });
 
     // Fetch all posts for explore (everyone's recent posts by date)
     useEffect(() => {
@@ -21,6 +24,9 @@ export default function Explore() {
                 
                 // Sort by date (most recent first)
                 const sortedPosts = data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                
+                // Store original posts for modal use
+                setOriginalPosts(sortedPosts);
                 
                 const normalized = sortedPosts.map(p => ({
                     id: p._id,
@@ -72,6 +78,12 @@ export default function Explore() {
         setShowCommentModal({ postId, isOpen: true });
     };
 
+    const handlePostClick = (post) => {
+        // Find the original post data using the post ID
+        const originalPost = originalPosts.find(p => p._id === post.id);
+        setShowPostModal({ post: originalPost || post, isOpen: true });
+    };
+
     const PostCard = ({ post }) => (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
             {/* User Info */}
@@ -94,19 +106,24 @@ export default function Explore() {
                 <span className="text-xs text-gray-400">{post.timestamp}</span>
             </div>
             
-            {/* Post Content */}
-            <p className="mb-4 text-gray-800 dark:text-gray-200" style={{ color: currentTheme.colors.text }}>
-                {post.content}
-            </p>
-            
-            {/* Post Image */}
-            {post.image && (
-                <img 
-                    src={post.image} 
-                    alt="Post" 
-                    className="w-full h-64 object-cover rounded-lg mb-4"
-                />
-            )}
+            {/* Post Content - Clickable */}
+            <div 
+                onClick={() => handlePostClick(post)}
+                className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-lg p-2 -m-2 mb-2"
+            >
+                <p className="mb-4 text-gray-800 dark:text-gray-200" style={{ color: currentTheme.colors.text }}>
+                    {post.content}
+                </p>
+                
+                {/* Post Image */}
+                {post.image && (
+                    <img 
+                        src={post.image} 
+                        alt="Post" 
+                        className="w-full h-64 object-cover rounded-lg mb-4"
+                    />
+                )}
+            </div>
             
             {/* Engagement Stats */}
             <div className="flex items-center space-x-6 text-sm text-gray-500">
@@ -176,6 +193,15 @@ export default function Explore() {
                     isOpen={showCommentModal.isOpen}
                     onClose={() => setShowCommentModal({ postId: null, isOpen: false })}
                     postId={showCommentModal.postId}
+                />
+            )}
+
+            {/* Post View Modal */}
+            {showPostModal.isOpen && (
+                <PostViewModal 
+                    isOpen={showPostModal.isOpen}
+                    onClose={() => setShowPostModal({ post: null, isOpen: false })}
+                    post={showPostModal.post}
                 />
             )}
         </div>

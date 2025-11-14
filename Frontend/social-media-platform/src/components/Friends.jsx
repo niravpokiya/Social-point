@@ -74,7 +74,7 @@ export default function Friends() {
                 receiverId: friend._id
             });
             
-            navigate(`/chat/${response.data.conversationId}`, {
+            navigate(`/chat/${response.data._id}`, {
                 state: { otherUser: friend }
             });
         } catch (error) {

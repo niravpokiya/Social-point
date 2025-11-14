@@ -13,12 +13,11 @@ const { Server } = require('socket.io');   // socket.io
 const authRoutes = require('./routes/Auth');
 const userRoutes = require("./routes/UserRoutes");
 const postRoutes = require("./routes/Post");
-const chatRoutes = require("./routes/Chat");   // ✅ NEW Chat routes
+const chatRoutes = require("./routes/Chat"); 
 
 const app = express();
 const server = http.createServer(app); // Create server from Express
-
-// -------------------- MIDDLEWARE --------------------
+ 
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -41,7 +40,7 @@ if (process.env.NODE_ENV === "production") {
   app.use("/api/auth", limiter);
 }
 
-// -------------------- DATABASE --------------------
+// db
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -51,8 +50,7 @@ mongoose.connect(process.env.MONGO_URI, {
 })
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.error("❌ MongoDB connection error:", err));
-
-// -------------------- ROUTES --------------------
+// routes
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -67,7 +65,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/settings", require('./routes/Settings'));
 app.use("/api/notifications", require('./routes/Notification'));
-app.use("/api/chat", chatRoutes);   // ✅ Chat routes mounted
+app.use("/api/chat", chatRoutes);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -86,7 +84,7 @@ app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });
 });
 
-// -------------------- SOCKET.IO --------------------
+// socket.io
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -127,8 +125,7 @@ io.on("connection", (socket) => {
     console.log("❌ User disconnected:", socket.id);
   });
 });
-
-// -------------------- START SERVER --------------------
+ 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);

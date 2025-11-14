@@ -299,13 +299,7 @@ const ChatPage = () => {
       {/* Input Area */}
       <div className="bg-gray-800 border-t border-gray-700 p-4">
         <div className="flex items-end space-x-3">
-          <button className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors">
-            <svg className="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-            </svg>
-          </button>
-          
-          <div className="flex-1 relative">
+          <div className="flex-1">
             <textarea
               rows={1}
               className="w-full px-4 py-3 rounded-full bg-gray-700 text-white placeholder-gray-400 border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none resize-none min-h-[48px] max-h-32"
@@ -315,11 +309,6 @@ const ChatPage = () => {
               onKeyDown={handleKeyDown}
               style={{ lineHeight: '1.5' }}
             />
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors">
-              <svg className="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
           </div>
 
           <button
