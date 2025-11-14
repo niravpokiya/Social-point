@@ -8,13 +8,13 @@ A modern, mesmerizing social media platform built with React, Node.js, and Mongo
 - **🎨 Dynamic Theme System**: 5 beautiful themes (Light, Dark, Purple, Ocean, Sunset)
 - **📱 Responsive Design**: Works perfectly on all devices
 - **🔥 Modern UI Components**: Beautiful cards, animations, and interactions
-- **⚙️ Comprehensive Settings**: Theme customization, privacy controls, notifications
+- **⚙️ Comprehensive Settings**: Theme customization, notifications
 - **📝 Social Feed**: Like, comment, share posts with real-time updates
 - **👥 User Management**: Profile pages, friend suggestions, user search
 - **🔐 Authentication**: Secure login/register with form validation
 
 ### Backend
-- **🛡️ Security**: Helmet, rate limiting, CORS protection
+- **🛡️ Security**: rate limiting, CORS protection
 - **📊 Enhanced Models**: User preferences, post analytics, virtual fields
 - **🔧 API Routes**: RESTful APIs for all features
 - **💾 Database**: MongoDB with optimized indexes and relationships
@@ -32,7 +32,7 @@ A modern, mesmerizing social media platform built with React, Node.js, and Mongo
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/niravpokiya/Social-point
    cd mernproject
    ```
 
@@ -53,7 +53,7 @@ A modern, mesmerizing social media platform built with React, Node.js, and Mongo
    Create a `.env` file in the server directory:
    ```env
    MONGO_URI=mongodb://localhost:27017/social-point
-   JWT_SECRET=your-super-secret-jwt-key
+   JWT_SECRET=your-jwt-key
    PORT=5000
    FRONTEND_URL=http://localhost:5173
    NODE_ENV=development
@@ -98,16 +98,15 @@ Social-Point features a comprehensive theme system with 5 beautiful themes:
 
 ```
 mernproject/
-├── client/
-│   └── social-media-platform/
-│       ├── src/
-│       │   ├── components/          # React components
-│       │   ├── context/            # React context (Theme, User)
-│       │   ├── Layout/             # Layout components
-│       │   ├── Hooks/              # Custom hooks
-│       │   └── utils/              # Utility functions
-│       └── package.json
-├── server/
+├── Frontend/
+│   ├── src/
+│   │   ├── components/          # React components
+│   │   ├── context/            # React context (Theme, User)
+│   │   ├── Layout/             # Layout components
+│   │   ├── Hooks/              # Custom hooks
+│   │   └── utils/              # Utility functions
+│   └── package.json
+├── Backend/
 │   ├── controllers/                # Route controllers
 │   ├── models/                     # MongoDB models
 │   ├── routes/                     # API routes
@@ -181,42 +180,8 @@ mernproject/
 - **Rate Limiting**: API abuse prevention
 - **CORS Protection**: Cross-origin request security
 - **Input Validation**: Server-side validation
-
-## 🚀 Deployment
-
-### Frontend (Vercel/Netlify)
-```bash
-cd client/social-media-platform
-npm run build
-# Deploy the dist folder
-```
-
-### Backend (Heroku/Railway)
-```bash
-cd server
-# Add production environment variables
-npm start
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+ 
 
 ## 📝 License
-
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgments
-
-- React team for the amazing framework
-- Tailwind CSS for the utility-first approach
-- MongoDB for the flexible database
-- All open-source contributors
-
----
-
-**Made with ❤️ by the Social-Point Team**
+ 
